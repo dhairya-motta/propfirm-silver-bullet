@@ -1,47 +1,84 @@
-# Prop Firm Arbitrage: ICT Silver Bullet + Volatility Filtering
+# Silver Bullet Strategy (AM + PM Sessions)
 
-This repository contains the complete quantitative research codebase proving the viability of exploiting prop firm evaluation asymmetry using a mathematically modeled limit-order execution strategy.
+This repository contains the simulation engine, logic, and comprehensive multi-year backtest data for the **Silver Bullet Strategy** on NQ (Nasdaq 100) futures.
 
 ## The Strategy
-The strategy trades the **ICT Silver Bullet** window on the NASDAQ index, executing purely via limit orders on liquidity sweeps.
 
-1. **AM Session:** Liquidity established 9:30 - 9:59 AM. Trades taken 10:00 - 11:00 AM.
-2. **PM Session:** Liquidity established 1:30 - 1:59 PM. Trades taken 2:00 - 3:00 PM.
-3. **Execution:** If price sweeps the liquidity high/low, we place a limit order exactly at the liquidity level, aiming to catch the snap-back reversion. 
-4. **Risk:** 1:1 Risk-to-Reward. (Fixed point stops based on the extreme of the sweep).
+The Silver Bullet Strategy looks for structural liquidity sweeps during specific 1-hour windows (10:00-11:00 AM EST and 2:00-3:00 PM EST). 
 
-## The Arbitrage Thesis
-Instead of optimizing for a "Holy Grail" 80% win rate, this project leverages the **asymmetric risk-to-reward** ratio of modern Prop Firms (like Topstep).
-* **Cost of Failure:** $49 (The price of a 50k Evaluation account)
-* **Reward of Success:** $1,500+ (Max payout before retiring the account)
+- **Instrument:** NQ
+- **Risk:** 1% per trade
+- **Take Profit / Stop Loss:** 1:1 Risk/Reward Ratio targeting the opposing liquidity pool.
+- **Filters:** We backtested an **[ATR Filter]** which keeps the strategy out of low-volatility, choppy market conditions versus an unfiltered **[NO FILTER]** approach that blindly takes every setup.
 
-By running 20 concurrent accounts through an automated pipeline, the strategy mathematically absorbs the cost of hundreds of blown evaluations by relying on the statistical inevitability of a massive $30,000 to $60,000 payout cycle when a 5-6 win streak hits.
+## Prop Firm Payout Mechanics (The "2% Rinse")
 
-## The Volatility Discovery (The Secret Sauce)
-The pure limit-order strategy suffers massively in low volatility conditions because price chops around the entry, triggering the order but lacking the momentum to hit the 1R target.
+Instead of waiting for large capital buffers to accumulate (e.g., waiting for +4% equity to withdraw), this strategy utilizes a **2% Continuous Rinsing** mechanic. 
 
-By analyzing 15 years of NSX data against the VIX and ATR (Average True Range), we discovered a distinct correlation: **Profitable months only occur when VIX > 23 and ATR > 200.**
+Once an account passes its evaluations (Phase 1 & Phase 2) and gets funded:
+1. The first payout targets a 1% profit to immediately recoup the Evaluation Fee.
+2. Every subsequent payout triggers as soon as the account equity reaches +2% ($2,000 buffer on a 100k account).
+3. The account is aggressively milked for small, continuous cash flow before drawdowns can erode profits.
 
-### The ATR Pre-Market Filter
-We introduced a pre-market volatility filter: **Only execute trades if the Daily ATR is > 100.**
-* It eliminates thousands of trades in "choppy" markets.
-* It slashes evaluation fees by nearly 70% in low-volatility eras.
-* It triples the net profit during the slow 8-year span (2010-2017) by preserving capital for high-momentum days.
+---
 
-## 15-Year Backtest Metrics (2010 - 2024)
+## 10-Year Backtest Results (2015 - 2025)
 
-| Scenario | Net Profit | Gross Payouts | Fees Paid | Blown Evals | Passed Evals | Total Payouts | Pass Rate |
-|---|---|---|---|---|---|---|---|
-| AM+PM (No NFP) [No Filter] | $837,040 | $990,000 | $152,960 | 1700 | 450 | 660 | 20.9% |
-| AM+PM (No NFP) [ATR Filter] | $825,900 | $930,000 | $104,100 | 1100 | 360 | 620 | 24.6% |
-| AM Only (No NFP) [No Filter] | $278,920 | $390,000 | $111,080 | 1620 | 220 | 260 | 11.9% |
-| AM Only (No NFP) [ATR Filter] | $401,980 | $480,000 | $78,020 | 1000 | 200 | 320 | 16.6% |
-| PM Only (No NFP) [No Filter] | $39,260 | $150,000 | $110,740 | 1700 | 180 | 100 | 9.5% |
-| PM Only (No NFP) [ATR Filter] | $45,840 | $120,000 | $74,160 | 1080 | 140 | 80 | 11.4% |
-| AM+PM (With NFP) [ATR Filter]| $727,400 | $840,000 | $112,600 | 1160 | 380 | 560 | 24.6% |
+The following metrics represent a 10-year simulation of trading this strategy exclusively on standard $100k Prop Firm evaluations, accounting for all evaluation fees, account blow-ups, and actual physical dollars extracted.
 
-> **Conclusion**: Combining the AM and PM sessions, avoiding NFP days, and strictly running the ATR > 100 filter provides the optimal blend of massive gross payouts while efficiently preserving capital from unnecessary blown evaluations.
+### AM + PM Combined [NO FILTER] (10-Year)
+- **Total Trades Taken:** 3,918
+- **Total Evaluations Started:** 41
+- **Evaluations Passed:** 8
+- **Total Fees Paid:** $18,655.00
+- **Total Refunds Earned:** $3,185.00
+- **Net Fee Burn:** $15,470.00
+- **Total Payouts Received:** $63,000.00
+- **Net Profit (Payouts - Net Burn):** **$47,530.00**
+- **Return on Spend (ROI):** **407.2%**
 
-## Running the Engine
-`python run_backtest.py`
-This will automatically generate the results matrix for all permutations by mathematically processing the evaluations, trailing drawdowns, and funded payouts tick-by-tick.
+**Account Lifecycle:**
+- Avg Win Streak: 1.99 trades
+- Avg Losing Streak: 2.03 trades
+- Avg Days to Pass Eval (P1+P2): 89.4 days
+- Avg Days to First 2% Payout (from funded): 30.4 days
+- Avg 2% Payouts per passed account: 3.50
+
+### AM + PM Combined [ATR FILTER] (10-Year)
+- **Total Trades Taken:** 2,327
+- **Total Evaluations Started:** 21
+- **Evaluations Passed:** 4
+- **Total Fees Paid:** $9,555.00
+- **Total Refunds Earned:** $1,820.00
+- **Net Fee Burn:** $7,735.00
+- **Total Payouts Received:** $52,000.00
+- **Net Profit (Payouts - Net Burn):** **$44,265.00**
+- **Return on Spend (ROI):** **672.3%**
+
+**Account Lifecycle:**
+- Avg Win Streak: 1.96 trades
+- Avg Losing Streak: 1.95 trades
+- Avg Days to Pass Eval (P1+P2): 150.2 days
+- Avg Days to First 2% Payout (from funded): 108.0 days
+- Avg 2% Payouts per passed account: 6.00
+
+---
+
+## 5-Year Backtest Results (2020 - 2025)
+
+The most recent 5 years of price action (which includes higher NQ volatility post-pandemic) showed a very different characteristic, where passing evaluations happened faster but the total yield was lower compared to the 10-year block.
+
+### AM + PM Combined [NO FILTER] (5-Year)
+- **Net Profit:** $35,630.00
+- **Return on Spend (ROI):** 659.3%
+- **Avg 2% Payouts per passed account:** 4.75
+
+### AM + PM Combined [ATR FILTER] (5-Year)
+- **Net Profit:** $25,630.00
+- **Return on Spend (ROI):** 502.4%
+- **Avg 2% Payouts per passed account:** 7.50
+
+## Conclusion
+The **Silver Bullet Strategy** is highly effective at grinding out profits over the long term. While it does not produce the massive $200k+ yields of the Fibo 50-pt strategy, its tight 1:1 risk/reward ensures that drawdowns are shallow and manageable. 
+
+Using the **ATR Filter** reduces the number of evaluations passed (since you take fewer trades, passing takes 150 days on average), but drastically increases the survival rate of funded accounts. When an account gets funded using the ATR filter, it averages **6 distinct payouts** before blowing up, making it a highly resilient cash-flow engine.
