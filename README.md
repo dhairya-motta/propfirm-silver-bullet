@@ -8,8 +8,24 @@ The Silver Bullet Strategy looks for structural liquidity sweeps during specific
 
 - **Instrument:** NQ
 - **Risk:** 1% per trade
-- **Take Profit / Stop Loss:** 1:1 Risk/Reward Ratio targeting the opposing liquidity pool.
-- **Filters:** We backtested an **[ATR Filter]** which keeps the strategy out of low-volatility, choppy market conditions versus an unfiltered **[NO FILTER]** approach that blindly takes every setup.
+
+### Strategy Setup & Rules
+
+1. **Trading Windows:**
+   - **AM Session:** 10:00 AM – 11:00 AM EST
+   - **PM Session:** 02:00 PM – 03:00 PM EST
+2. **The Setup (Liquidity Range):**
+   - Mark the highest high and lowest low of the preceding hour (09:00 - 10:00 for AM, 13:00 - 14:00 for PM). This establishes a defined liquidity range.
+   - Wait for price to sweep (break and close past) either the buy-side liquidity (high) or sell-side liquidity (low) during the active trading window.
+   - **[ATR Filter] (Optional):** Only execute the trade if the 14-period Average True Range (ATR) is above a designated threshold, indicating sufficient market volatility to drive a reversal instead of choppy consolidation.
+3. **Execution Logic:**
+   - **Entry:** Enter a reversal trade immediately after the liquidity sweep (e.g., if highs are swept, go short; if lows are swept, go long).
+   - **Take Profit:** Target the opposing liquidity pool (if sweeping highs, target the original low of the range).
+   - **Stop Loss:** Placed symmetrically to maintain a strict 1:1 Risk/Reward ratio.
+4. **Trade Management:**
+   - Strict 1:1 RR on every trade.
+   - Maximum of 2 stop losses allowed per session.
+
 
 ## Prop Firm Payout Mechanics (The "2% Rinse")
 
